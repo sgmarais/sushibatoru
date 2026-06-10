@@ -78,7 +78,7 @@
         <div id="generated-code" style="color: #f1c40f; font-size: 10px; margin-top:10px;"></div>
     </div>
 
-    <button class="battle-btn" id="battle-start-btn" onclick="startAIBattle()" style="display: none;">🍣 AIバトル開始 🍣</button>
+    <button class="battle-btn" id="battle-start-btn" onclick="startAIBattle()" style="display: none;">🍣 AIバトル開始（結果一括表示） 🍣</button>
 
     <div class="output-area" id="result-share-box" style="display: none; background-color: #27ae60;">
         <p style="margin:0; color:white; font-weight:bold;">🎉 バトル終了！結果コードを友達に送ろう：</p>
@@ -176,7 +176,7 @@
         navigator.clipboard.writeText(text).then(() => alert("📋 コピーしました！"));
     }
 
-    // 【修正点】タイピング演出をカットし、一瞬で一括表示＆スクロールするカスタム版
+    // 文字を一気に代入して一瞬で一番下までスクロールさせる関数
     function typeWriter(text, elementId, speed = 50) {
         const element = document.getElementById(elementId);
         const cursor = document.getElementById('type-cursor');
