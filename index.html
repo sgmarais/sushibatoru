@@ -78,7 +78,7 @@
         <div id="generated-code" style="color: #f1c40f; font-size: 10px; margin-top:10px;"></div>
     </div>
 
-    <button class="battle-btn" id="battle-start-btn" onclick="startAIBattle()" style="display: none;">🍣 AIバトル開始（実況開始） 🍣</button>
+    <button class="battle-btn" id="battle-start-btn" onclick="startAIBattle()" style="display: none;">🍣 AIバトル開始 🍣</button>
 
     <div class="output-area" id="result-share-box" style="display: none; background-color: #27ae60;">
         <p style="margin:0; color:white; font-weight:bold;">🎉 バトル終了！結果コードを友達に送ろう：</p>
@@ -176,23 +176,18 @@
         navigator.clipboard.writeText(text).then(() => alert("📋 コピーしました！"));
     }
 
+    // 【修正点】タイピング演出をカットし、一瞬で一括表示＆スクロールするカスタム版
     function typeWriter(text, elementId, speed = 50) {
         const element = document.getElementById(elementId);
         const cursor = document.getElementById('type-cursor');
-        element.innerText = "";
-        cursor.style.display = "inline-block";
-        let i = 0;
-        function type() {
-            if (i < text.length) {
-                element.innerText += text.charAt(i);
-                i++;
-                window.scrollTo(0, document.body.scrollHeight);
-                setTimeout(type, speed);
-            } else {
-                cursor.style.display = "none";
-            }
+        
+        element.innerText = text;
+        
+        if (cursor) {
+            cursor.style.display = "none";
         }
-        type();
+        
+        window.scrollTo(0, document.body.scrollHeight);
     }
 
     function generateCode() {
@@ -227,7 +222,6 @@
         } catch(e) { alert("結果コードが正しくありません。"); }
     }
 
-    // バックアップ用モデルへの切り替え機能を追加したバトル開始関数
     async function startAIBattle() {
         const attackerInfo = (enemyData.role === "attacker") ? enemyData : { cards: selectedCards, strategy: document.getElementById('strategy-input').value };
         const defenderInfo = (enemyData.role === "defender") ? enemyData : { cards: selectedCards, strategy: document.getElementById('strategy-input').value };
@@ -238,15 +232,13 @@
         const promptText = `寿司屋のカウンターバトル実況。
 客タッグ: ${attackerInfo.cards[0].name}, ${attackerInfo.cards[1].name} (作戦: ${attackerInfo.strategy})
 職インタッグ: ${defenderInfo.cards[0].name}, ${defenderInfo.cards[1].name} (作戦: ${defenderInfo.strategy})
-YouTubeイーターの生配信や、お会計ベテランの皿チェックなどのスキルコンボを盛り込み、熱血実慶してください。最後に勝敗（客の勝ち/職人の勝ち/引き分け）を宣言してください。日本語でドラマチックに！`;
+YouTubeイーターの生配信や、お会計ベテランの皿チェックなどのスキルコンボを盛り込み、熱血実況してください。最後に勝敗（客の勝ち/職人の勝ち/引き分け）を宣言してください。日本語でドラマチックに！`;
 
-        // まずは第1候補の最新モデルでトライ
         let success = await callGeminiAPI("gemini-2.5-flash", promptText);
         
-        // もし大混雑（High Demand）などで失敗したら、第2候補の安定モデルで再トライ
         if (!success) {
             document.getElementById('battle-log').innerText = "🔄 メイン回線が混雑中... 予備の安定ルートに切り替えて再接続しています...";
-            await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒待機
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
             let backupSuccess = await callGeminiAPI("gemini-1.5-flash-latest", promptText);
             if (!backupSuccess) {
@@ -255,7 +247,6 @@ YouTubeイーターの生配信や、お会計ベテランの皿チェックな�
         }
     }
 
-    // APIを呼び出す共通の補助関数
     async function callGeminiAPI(modelName, prompt) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${sharedApiKey}`;
         try {
@@ -266,7 +257,6 @@ YouTubeイーターの生配信や、お会計ベテランの皿チェックな�
             });
             const data = await response.json();
             
-            // 混雑エラー等がある場合は失敗と判定してbackupに回す
             if (data.error) {
                 console.log(`Model ${modelName} failed:`, data.error.message);
                 return false;
